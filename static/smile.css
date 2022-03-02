@@ -4,7 +4,7 @@
 }
 
 body {
-    background-color: rgba(236, 240, 241, 1.0);
+    background-color: rgba(99, 63, 67, 1.0);
 }
 
 .container {
@@ -17,21 +17,23 @@ h1 {
     font-weight: 200;
     font-size: 4rem;
     margin: 0.5rem 0 0 0;
+    color: burlywood;
 }
 
 h2 {
     font-size: 2rem;
     text-align: center;
     margin: 0 0 0.5rem 0;
+    color: burlywood;
 }
 
 nav {
     text-align: center;
-    color: rgba(52, 152, 219, 1.0);
+    color: burlywood;
     font-size: 1.8rem;
 }
 
 a, a:visited {
-    color: rgba(52, 152, 219, 1.0);
+    color: burlywood;
     text-decoration: none;
 }
