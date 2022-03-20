@@ -48,4 +48,24 @@ def render_contact():
 def render_login_page():
     return render_template('login.html')
 
+@app.route('/signup', methods=['GET','POST'])
+def render_signup_page():
+    print(request.form)
+    fname = request.form.get('fname')
+    lname = request.form.get('lname')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    password2 = request.form.get('password2')
+
+    con = create_connection(DB_NAME)
+
+    query = "INSERT INTO customer(id, fname, lname, email, password) VALUES(NULL,?,?,?,?)"
+    cur = con.cursor() # you need this line next
+    cur.execute(query,(fname, lname, email, password)) # this line actually executes the query
+    con.commit()
+    con.close()
+
+    return render_template('signup.html')
+
+
 app.run(host="0.0.0.0")
