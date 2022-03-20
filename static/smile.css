@@ -37,3 +37,34 @@ a, a:visited {
     color: burlywood;
     text-decoration: none;
 }
+.product-box {
+    font-size:0.8rem;
+}
+.myform{
+    width:80%;
+    margin:auto;
+    padding-top: 3rem;
+}
+.form-group{
+    padding-top: 3rem;
+}
+.form-label{
+    width:30%;
+    float:left;
+    padding:0.3rem;
+}
+.form-element{
+    width:70%;
+    float:left;
+}
+.button-group{
+    margin-top:3rem;
+    text-align:center;
+}
+.button-group input{
+    padding:0.3rem;
+}
+.form-group input{
+    padding:0.3rem;
+    width:100%;
+}
