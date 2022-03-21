@@ -6,6 +6,9 @@ DB_NAME = "smile.db"
 
 app = Flask(__name__)
 
+app.secret_key = "2143567uyhgfds5uftyjhg"
+
+
 def create_connection(db_file):
     """create a connection to the sqlite db"""
     try:
@@ -18,52 +21,97 @@ def create_connection(db_file):
         return None
 
 
-
 @app.route('/')
 def render_homepage():
     return render_template("home.html")
 
+
 @app.route('/menu')
 def render_menu_page():
-
-
     # connect to the database
     con = create_connection(DB_NAME)
 
     # SELECT the things you want from your table(s)
     query = "SELECT name, description, volume, price, image FROM product"
 
-    cur = con.cursor() # You need this line next
-    cur.execute(query) # this line will actually execute the query
-    product_list = cur.fetchall() # puts the results into a list usable in python
+    cur = con.cursor()  # You need this line next
+    cur.execute(query)  # this line will actually execute the query
+    product_list = cur.fetchall()  # puts the results into a list usable in python
     con.close()
 
     return render_template("menu.html", products=product_list)
+
 
 @app.route('/contact')
 def render_contact():
     return render_template("contact.html")
 
-@app.route('/login')
+
+@app.route('/login', method=["GET", "POST"])
 def render_login_page():
-    return render_template('login.html')
+    if request.method == "POST":
+        email = request.form['email'].strip().lower()
+        password = request.form['password'].strip()
 
-@app.route('/signup', methods=['GET','POST'])
+        query = """SELECT id, fname, password FROM customer WHERE email = ?"""
+        con = create_connection(DB_NAME)
+        cur = con.cursor()
+        cur.execute(query, (email,))
+        user_data = cur.fetchall()
+        con.close()
+        # if given the email is not in the database this will raise an error
+        # would be better to find out how to see if the query return an empty result
+        try:
+            userid = user_data[0][0]
+            firstname = user_data[0][1]
+            db_password = user_data[0][2]
+        except IndexError:
+            return redirect("/login?error=Email+invalid+or+password+incorrect")
+
+        # check if the password is incorrect for that email address
+        id db_password != password:
+            return redirect("/login?error=Email+invalid+or+password+incorrect")
+    # if not bcrypt.check_password_has(db_password, password):
+    #   return redirect(request.referrer + "?error=Email+invalid+or+password+incorrect
+
+        session['email'] = email
+        session['userid'] = userid
+        session['firstname'] = firstname
+        print(session)
+        return redirect('/')
+    return render_template('login.html', logged_in=is_logged_in())
+
+
+@app.route('/signup', methods=['GET', 'POST'])
 def render_signup_page():
-    print(request.form)
-    fname = request.form.get('fname')
-    lname = request.form.get('lname')
-    email = request.form.get('email')
-    password = request.form.get('password')
-    password2 = request.form.get('password2')
+    if request.method == 'POST':
+        print(request.form)
+        fname = request.form.get('fname').strip().title()
+        lname = request.form.get('lname').strip().title()
+        email = request.form.get('email').strip().lower()
+        password = request.form.get('password')
+        password2 = request.form.get('password2')
 
-    con = create_connection(DB_NAME)
+        if password != password2:
+            return redirect('/signup?error=Passwords+dont+match')
 
-    query = "INSERT INTO customer(id, fname, lname, email, password) VALUES(NULL,?,?,?,?)"
-    cur = con.cursor() # you need this line next
-    cur.execute(query,(fname, lname, email, password)) # this line actually executes the query
-    con.commit()
-    con.close()
+        if len(password) < 8:
+            return redirect('/signup?error=Password+must+be+8+characters+or+more')
+
+        con = create_connection(DB_NAME)
+
+        query = "INSERT INTO customer(id, fname, lname, email, password) " \
+        "VALUES(NULL,?,?,?,?)"
+
+        cur = con.cursor()  # you need this line next
+        try:
+            cur.execute(query, (fname, lname, email, password))  # this line actually executes the query
+        except sqlite3.IntegrityError:
+            return redirect('signup?error=Email+has+already+been+used')
+
+        con.commit()
+        con.close()
+        return redirect('/login')
 
     return render_template('signup.html')
 
