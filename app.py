@@ -47,7 +47,7 @@ def render_contact():
     return render_template("contact.html")
 
 
-@app.route('/login', method=["GET", "POST"])
+@app.route('/login', methods=["GET", "POST"])
 def render_login_page():
     if request.method == "POST":
         email = request.form['email'].strip().lower()
@@ -69,10 +69,10 @@ def render_login_page():
             return redirect("/login?error=Email+invalid+or+password+incorrect")
 
         # check if the password is incorrect for that email address
-        id db_password != password:
+        if db_password != password:
             return redirect("/login?error=Email+invalid+or+password+incorrect")
-    # if not bcrypt.check_password_has(db_password, password):
-    #   return redirect(request.referrer + "?error=Email+invalid+or+password+incorrect
+        # if not bcrypt.check_password_has(db_password, password):
+        #   return redirect(request.referrer + "?error=Email+invalid+or+password+incorrect
 
         session['email'] = email
         session['userid'] = userid
@@ -101,7 +101,7 @@ def render_signup_page():
         con = create_connection(DB_NAME)
 
         query = "INSERT INTO customer(id, fname, lname, email, password) " \
-        "VALUES(NULL,?,?,?,?)"
+                "VALUES(NULL,?,?,?,?)"
 
         cur = con.cursor()  # you need this line next
         try:
@@ -114,6 +114,23 @@ def render_signup_page():
         return redirect('/login')
 
     return render_template('signup.html')
+
+
+@app.route('/logout')
+def logout():
+    print(list(session.keys()))
+    [session.pop(key) for key in list(session.keys())]
+    print(list(session.keys()))
+    return redirect('/?message=See+you+next+time!')
+
+
+def is_logged_in():
+    if session.get("email") is None:
+        print("not logged in")
+        return False
+    else:
+        print("logged in")
+        return True
 
 
 app.run(host="0.0.0.0")
