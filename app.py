@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 DB_NAME = "smile.db"
 
@@ -33,7 +34,7 @@ def render_menu_page():
     con = create_connection(DB_NAME)
 
     # SELECT the things you want from your table(s)
-    query = "SELECT name, description, volume, price, image FROM product"
+    query = "SELECT id, name, description, volume, price, image FROM product"
 
     cur = con.cursor()  # You need this line next
     cur.execute(query)  # this line will actually execute the query
@@ -129,6 +130,27 @@ def logout():
     [session.pop(key) for key in list(session.keys())]
     print(list(session.keys()))
     return redirect('/?message=See+you+next+time!')
+
+
+@app.route('/addtocart/<productid>')
+def addtocart(productid):
+    try:
+        productid = int(productid)
+    except ValueError:
+        print("{} is not an integer".format(productid))
+        return redirect(request.referrer + "?error=Invalid+product+id")
+
+    userid = session['userid']
+    timestamp = datetime.now()
+    print("User {} would like to add {} to cart at {}".format(userid, productid, timestamp))
+
+    query = "INSERT INTO cart(id, userid, productid, timestamp) VALUES (NULL,?,?,?)"
+    con = create_connection(DB_NAME)
+    cur = con.cursor()  # You need this line next
+    cur.execute(query, (userid, productid, timestamp))
+    con.commit()
+    con.close()
+    return redirect('/menu')
 
 
 def is_logged_in():
