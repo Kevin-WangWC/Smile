@@ -15,12 +15,13 @@ def create_connection(db_file):
     """create a connection to the sqlite db"""
     try:
         connection = sqlite3.connect(db_file)
-        # iniilalise_table(connection)
+        connection.execute('pragma foreign_keys=ON')
+        # initialise_table(connection)
         return connection
     except Error as e:
         print(e)
 
-        return None
+    return None
 
 
 @app.route('/')
@@ -138,8 +139,8 @@ def addtocart(productid):
         productid = int(productid)
     except ValueError:
         print("{} is not an integer".format(productid))
-        return redirect(request.referrer + "?error=Invalid+product+id")
-
+        return redirect("/menu?error=Invalid+product+id")
+    print(session)
     userid = session['userid']
     timestamp = datetime.now()
     print("User {} would like to add {} to cart at {}".format(userid, productid, timestamp))
@@ -147,10 +148,56 @@ def addtocart(productid):
     query = "INSERT INTO cart(id, userid, productid, timestamp) VALUES (NULL,?,?,?)"
     con = create_connection(DB_NAME)
     cur = con.cursor()  # You need this line next
-    cur.execute(query, (userid, productid, timestamp))
+
+    #try to INSERT - this will fail if there is a foregin key issue
+    try:
+        cur.execute(query, (userid, productid, timestamp))
+    except sqlite3.IntegrityError as e:
+        print(e)
+        print('### PROBLEM INSERTING INTO DATABSE - FOREIGN KEY ###')
+        con.close()
+        return redirect('/menu?error=Something+went+wrong')
+
+    #everything works, commit the insertion or the system will immediately roll it back
     con.commit()
     con.close()
     return redirect('/menu')
+
+@app.route('/cart')
+def render_cart():
+    userid = session['userid']
+    query = "SELECT productid FROM cart WHERE userid=?;"
+    con = create_connection(DB_NAME)
+    cur = con.cursor()
+    cur.execute(query, (userid,))
+    product_ids = cur.fetchall()
+    print(product_ids)
+
+    #the results from the query are a list of sets, loop though and pull out the ids
+    for i in range(len(product_ids)):
+        product_ids[i] = product_ids[i][0]
+    print(product_ids)
+
+    unique_product_ids = list(set(product_ids))
+    print(unique_product_ids)
+
+    for i in range(len(unique_product_ids)):
+        product_count = product_ids.count(unique_product_ids[i])
+        unique_product_ids[i] = [unique_product_ids[i], product_count]
+    print(unique_product_ids)
+
+    query = """SELECT name, price FROM product WHERE id =?;"""
+    for item in unique_product_ids:
+        cur.execute(query, (item[0],))
+        item_details = cur.fetchall()
+        print(item_details)
+        item.append(item_details[0][0])
+        item.append(item_details[0][1])
+
+    con.close()
+    print(unique_product_ids)
+=
+    return "hello"
 
 
 def is_logged_in():
