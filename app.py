@@ -171,34 +171,39 @@ def render_cart():
     cur = con.cursor()
     cur.execute(query, (userid,))
     product_ids = cur.fetchall()
-    print(product_ids)
 
     #the results from the query are a list of sets, loop though and pull out the ids
     for i in range(len(product_ids)):
         product_ids[i] = product_ids[i][0]
-    print(product_ids)
 
     unique_product_ids = list(set(product_ids))
-    print(unique_product_ids)
 
     for i in range(len(unique_product_ids)):
         product_count = product_ids.count(unique_product_ids[i])
         unique_product_ids[i] = [unique_product_ids[i], product_count]
-    print(unique_product_ids)
 
     query = """SELECT name, price FROM product WHERE id =?;"""
     for item in unique_product_ids:
         cur.execute(query, (item[0],))
         item_details = cur.fetchall()
-        print(item_details)
         item.append(item_details[0][0])
         item.append(item_details[0][1])
 
     con.close()
-    print(unique_product_ids)
-=
-    return "hello"
 
+    return render_template('cart.html', cart_data=unique_product_ids, logged_in=is_logged_in())
+
+@app.route('/removeonefromcart/<product_id>')
+def render_remove_page(product_id):
+    print("Remove item {}".format(product_id))
+    user_id = session['userid']
+    query = "DELETE FROM cart WHERE id =(SELECT MIN(id) FROM cart WHERE productid=? and userid=?);"
+    con = create_connection(DB_NAME)
+    cur = con.cursor()
+    cur.execute(query, (product_id, user_id))
+    con.commit()
+    con.close()
+    return redirect('/cart')
 
 def is_logged_in():
     if session.get("email") is None:
