@@ -91,12 +91,7 @@ a, a:visited {
 }
 
 .product-box {
-    /*width: 13vw;*/
     width: 32%;
-    /*float: left;*/
-    /*display: table-cell;*/
-    /*padding: 0.5rem;*/
-    /*margin: 1vw;*/
     border: 1px solid rgba(189, 195, 199, 1.0);
     color: rgba(44, 62, 80, 1.0);
     margin-bottom: 0.5rem;
